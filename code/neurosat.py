@@ -23,7 +23,11 @@ class NeuroSAT(nn.Module):
         self.C_update = nn.LSTM(self.args.dim, self.args.dim)
         # self.C_norm   = nn.LayerNorm(self.args.dim)
 
-        self.L_vote = MLP(self.args.dim, self.args.dim, 1)
+        self.L_vote =nn.Sequential(
+            nn.Linear(self.args.dim,1),
+            nn.ReLU(),
+        )
+        self.L_prob=nn.Linear(2,1)
 
         self.denom = torch.sqrt(torch.Tensor([self.args.dim]))
 
@@ -31,7 +35,7 @@ class NeuroSAT(nn.Module):
         n_vars = problem.n_vars
         n_lits = problem.n_lits
         n_clauses = problem.n_clauses
-        n_probs = len(problem.is_sat)
+        # n_probs = len(problem.is_sat)
         # print(n_vars, n_lits, n_clauses, n_probs)
 
         ts_L_unpack_indices = torch.Tensor(problem.L_unpack_indices).t().long()
@@ -83,12 +87,17 @@ class NeuroSAT(nn.Module):
         vote = self.L_vote(logits)
         # print('vote', vote.shape)
         vote_join = torch.cat([vote[:n_vars, :], vote[n_vars:, :]], dim=1)
+        #vote_join 5*2
+        # 加一层神经网络 变成5*1
+        vote_join=self.L_prob(vote_join)
         # print('vote_join', vote_join.shape)
-        self.vote = vote_join
-        vote_join = vote_join.view(n_probs, -1, 2).view(n_probs, -1)
-        vote_mean = torch.mean(vote_join, dim=1)
+        # self.vote = vote_join
+        # vote_join = vote_join.view(n_probs, -1, 2).view(n_probs, -1)
+        # vote_join是每一个文字的输出值
+
+        # vote_mean = torch.mean(vote_join, dim=1)
         # print('mean', vote_mean.shape)
-        return vote_mean
+        return vote_join
 
     def flip(self, msg, n_vars):
         return torch.cat([msg[n_vars:2 * n_vars, :], msg[:n_vars, :]], dim=0)

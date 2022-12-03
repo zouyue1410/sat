@@ -55,7 +55,7 @@ def gen_iclause_pair(opts):
 
     iclause_unsat = iclause
     iclause_sat = [- iclause_unsat[0] ] + iclause_unsat[1:]#翻转icluse_unsat中的一个文字就变成了可满足的
-    if(opts.label_out_dir) is not None:
+    if(opts.neuro_initial) :
         label = solver.get_model()
         return n, iclauses, iclause_unsat, iclause_sat,label
     return n, iclauses, iclause_unsat, iclause_sat
@@ -77,11 +77,11 @@ if __name__ == "__main__":
     parser.add_argument('--print_interval', action='store', dest='print_interval', type=int, default=100)
 
     parser.add_argument('--neuro_initial', action='store', type=bool,default=False)
-    parser.add_argument('--label_out_dir', action='store', type=str, default=None)
+    # parser.add_argument('--label_out_dir', action='store', type=str, default=None)
     opts = parser.parse_args()
 
     os.makedirs(opts.out_dir)
-    os.makedirs(opts.label_out_dir)
+    #os.makedirs(opts.label_out_dir)
 
     if opts.py_seed is not None: random.seed(opts.py_seed)
     if opts.np_seed is not None: np.random.seed(opts.np_seed)
@@ -99,7 +99,7 @@ if __name__ == "__main__":
         if opts.neuro_initial is not None:
             n_vars, iclauses, iclause_unsat, iclause_sat,label = gen_iclause_pair(opts)
 
-            label_out_filename = mk_out_filenames(opts.label_out_dir, n_vars, pair)
+            #label_out_filename = mk_out_filenames(opts.label_out_dir, n_vars, pair)
             #write_label_to(label,label_out_filename[1])
         else :
             n_vars, iclauses, iclause_unsat, iclause_sat= gen_iclause_pair(opts)
@@ -116,14 +116,14 @@ if __name__ == "__main__":
             n_clauses = len(iclauses)
             n_cells = sum([len(iclause) for iclause in iclauses])
             n_nodes = 2 * n_vars + n_clauses
-            problems.append((n_vars, iclauses, 1))
-            # problems.append(n_vars,iclauses, label)
+            # problems.append((n_vars, iclauses, 1))
+            problems.append((n_vars,iclauses, label))
             if len(problems) > 0:
                 batches.append(mk_batch_problem(problems))
 
                 del problems[:]
-    pkl_file = open('/home/zhang/zouy/sat/data/sr_pkl/1'+ '.pkl', mode='w')
-    with open('/home/zhang/zouy/sat/data/sr_pkl/1' + '.pkl', "wb") as f:
+    pkl_file = open(os.path.join(opts.out_dir,'label.pkl'), mode='w')
+    with open(os.path.join(opts.out_dir,'label.pkl'), "wb") as f:
         pickle.dump(batches, f)
         '''
         pkl_file = open('/home/zhang/zouy/sat/data/sr_pkl/{}'.format(pair)+'.pkl', mode ='w')

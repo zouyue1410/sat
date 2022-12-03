@@ -9,9 +9,12 @@ from config import parser
 from tqdm import tqdm
 args = parser.parse_args()
 
+'''
 def mk_filenames(dir_path,n):
     prefix = "{}/{}".format(dir_path,n)
     return ("", "{}.pkl".format(prefix))
+'''
+
 '''
 problems=[]
 n_vars=5
@@ -25,7 +28,7 @@ problems.append(("sr_n=%.4d_pk2=%.2f_pg=%.2f_t=%d_sat=0" % (n_vars, args.p_k_2, 
 
 
 #train_filename=mk_filenames("/home/zhang/zouy/sat/data/sr_pkl",n)
-with open('/home/zhang/zouy/sat/data/sr_pkl/1.pkl', 'rb') as f:
+with open(args.data_dir, 'rb') as f:
     train_sets = pickle.load(f)
 
 
@@ -44,12 +47,20 @@ for _, prob in enumerate(train_sets):
 
     optim.zero_grad()
     outputs = net(prob)
-    target = torch.Tensor(prob.is_sat).cuda().float()
+    # 把标签变成float型
+
+    target = torch.Tensor(prob.label).cuda().float()
+    target = target.view(prob.n_vars,1)
     # print(outputs.shape, target.shape)
     # print(outputs, target)
     outputs = sigmoid(outputs)
-
-    loss = loss_fn(outputs, target)
+    #把outputs变成行列对换
+    #outputs = outputs.view(1,prob.n_vars)
+    loss=0
+    for i in range(0,prob.n_vars):
+        loss =loss + loss_fn(outputs[i], target[i])
+    loss=loss/prob.n_vars
+    #loss = loss_fn(outputs, target)
     desc = 'loss: %.4f; ' % (loss.item())
 
     loss.backward()

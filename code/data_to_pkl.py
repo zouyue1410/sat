@@ -14,7 +14,7 @@ def ilit_to_vlit(x, n_vars):
     else: return var
 
 class Problem(object):
-    def __init__(self, n_vars, iclauses, is_sat, n_cells_per_batch, all_dimacs):
+    def __init__(self, n_vars, iclauses, label, n_cells_per_batch):
         self.n_vars = n_vars
         self.n_lits = 2 * n_vars
         self.n_clauses = len(iclauses)
@@ -22,11 +22,11 @@ class Problem(object):
         self.n_cells = sum(n_cells_per_batch)
         self.n_cells_per_batch = n_cells_per_batch
 
-        self.is_sat = is_sat
+        self.label = label
         self.compute_L_unpack(iclauses)
 
         # will be a list of None for training problems
-        self.dimacs = all_dimacs
+
 
     def compute_L_unpack(self, iclauses):
         self.L_unpack_indices = np.zeros([self.n_cells, 2], dtype=np.int)
@@ -51,26 +51,26 @@ def shift_iclauses(iclauses, offset):
 
 def mk_batch_problem(problems):
     all_iclauses = []
-    all_is_sat = []
+    all_label = []
     all_n_cells = []
-    all_dimacs = []
+
     offset = 0
 
     prev_n_vars = None
     #for dimacs, n_vars, iclauses, is_sat in problems:
-    for n_vars, iclauses, is_sat in problems:
+    for n_vars, iclauses,label in problems:
         assert(prev_n_vars is None or n_vars == prev_n_vars)
         prev_n_vars = n_vars
 
         all_iclauses.extend(shift_iclauses(iclauses, offset))
-        all_is_sat.append(is_sat)
+        all_label.append(label)
         all_n_cells.append(sum([len(iclause) for iclause in iclauses]))
         #all_dimacs.append(dimacs)
 
         offset += n_vars
 
     #return Problem(offset, all_iclauses, all_is_sat, all_n_cells, all_dimacs)
-    return Problem(offset, all_iclauses, all_is_sat, all_n_cells,all_dimacs)
+    return Problem(offset, all_iclauses, all_label, all_n_cells)
 
 
 def to_pkl(label_out_filename, n_vars, iclauses,label,pair):
