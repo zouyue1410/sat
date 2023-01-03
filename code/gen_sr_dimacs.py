@@ -5,7 +5,7 @@ import random
 import argparse
 import PyMiniSolvers.minisolvers as minisolvers
 import pickle
-from data_to_pkl import to_pkl
+
 from data_to_pkl import  mk_batch_problem
 
 def write_dimacs_to(n_vars, iclauses, out_filename):
@@ -26,6 +26,10 @@ def mk_out_filenames(out_dir, n_vars, t):
 
     prefix = "{}/id={}_n={}".format(out_dir, t, n_vars)
     return ("", "{}.cnf".format(prefix))
+def mk_pkl_out_filenames(out_dir, n_vars, t):
+
+    prefix = "{}/id={}_n={}".format(out_dir, t, n_vars)
+    return ("", "{}.pkl".format(prefix))
 
 def generate_k_iclause(n, k):
     vs = np.random.choice(n, size=min(n, k), replace=False)
@@ -41,7 +45,8 @@ def gen_iclause_pair(opts):
 
     while True:
         k_base = 1 if random.random() < opts.p_k_2 else 2
-        k = k_base + np.random.geometric(opts.p_geo)#k是第i个子句中的变量数
+        #k = k_base + np.random.geometric(opts.p_geo)#k是第i个子句中的变量数
+        k=3
         iclause = generate_k_iclause(n, k)#第i个子句
 
         solver.add_clause(iclause)
@@ -82,7 +87,7 @@ if __name__ == "__main__":
 
     os.makedirs(opts.out_dir)
     #os.makedirs(opts.label_out_dir)
-
+    os.makedirs(os.path.join(opts.out_dir, 'pkl'))
     if opts.py_seed is not None: random.seed(opts.py_seed)
     if opts.np_seed is not None: np.random.seed(opts.np_seed)
 
@@ -106,25 +111,27 @@ if __name__ == "__main__":
 
         out_filenames = mk_out_filenames(opts.out_dir, n_vars, pair)
 
+        pkl_out_filename=mk_pkl_out_filenames(os.path.join(opts.out_dir,'pkl'),n_vars,pair)
         iclauses.append(iclause_unsat)
         # write_dimacs_to(n_vars, iclauses, out_filenames[0])
 
         iclauses[-1] = iclause_sat
         write_dimacs_to(n_vars, iclauses, out_filenames[1])
 
-        if opts.neuro_initial is not None:
-            n_clauses = len(iclauses)
-            n_cells = sum([len(iclause) for iclause in iclauses])
-            n_nodes = 2 * n_vars + n_clauses
-            # problems.append((n_vars, iclauses, 1))
-            problems.append((n_vars,iclauses, label))
-            if len(problems) > 0:
-                batches.append(mk_batch_problem(problems))
 
-                del problems[:]
-    pkl_file = open(os.path.join(opts.out_dir,'label.pkl'), mode='w')
-    with open(os.path.join(opts.out_dir,'label.pkl'), "wb") as f:
-        pickle.dump(batches, f)
+
+        n_clauses = len(iclauses)
+        n_cells = sum([len(iclause) for iclause in iclauses])
+        n_nodes = 2 * n_vars + n_clauses
+        # problems.append((n_vars, iclauses, 1))
+        problems=(n_vars,iclauses, label,n_cells)
+        if len(problems) > 0:
+            batches=mk_batch_problem(problems)
+
+        #pkl_file = open(os.path.join(opts.out_dir,'pkl',), mode='w')
+        with open(pkl_out_filename[1], "wb") as f:
+            pickle.dump(batches, f)
+
         '''
         pkl_file = open('/home/zhang/zouy/sat/data/sr_pkl/{}'.format(pair)+'.pkl', mode ='w')
         with open('/home/zhang/zouy/sat/data/sr_pkl/{}'.format(pair)+'.pkl',"wb") as f:

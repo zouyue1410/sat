@@ -3,11 +3,12 @@ import logging
 import os
 import pdb
 import random
+import time
 
 import numpy as np
 
 from cnf import CNF
-
+from neuro_initial import pre_assign
 logger = logging.getLogger(__name__)
 
 
@@ -59,13 +60,24 @@ class WalkSAT:
             self.true_lit_count[index] -= 1
         self.model[abs(literal)] *= -1
 
-    def run(self, formula):
+    def run(self, formula,filename,args):
         n_clauses = len(formula.clauses)
+        if args.neuro_ini is True:
+            output = pre_assign(args, filename)
+
         for i in range(1, self.max_tries + 1):
             #print('\nnew try')
-            self.model = [
-                x if random.random() < 0.5 else -x for x in range(formula.n_variables + 1)
-            ]
+            if args.neuro_ini is True:
+                #output=pre_assign(args,filename)
+
+                self.model = [0]
+                for x in range(formula.n_variables):
+                    self.model.append(x + 1 if output[x] == 1 else -(x + 1))
+            else :
+                self.model = [
+                    x if random.random() < 0.5 else -x for x in range(formula.n_variables + 1)
+                ]
+
             self.true_lit_count = self.compute_true_lit_count(formula.clauses)
             j = 0
             flipped = set()
@@ -107,7 +119,10 @@ class WalkSAT:
 def main(args):
     if args.seed > -1:
         random.seed(args.seed)
-
+    if args.neuro_ini:
+        logging.info(
+            'neuro_initial'
+        )
     if args.dir_path:
         med_flips = []
         avg_flips = []
@@ -121,12 +136,14 @@ def main(args):
         downwards = []
         upwards = []
         sideways = []
+        start = time.time()
         for i, filename in enumerate(os.listdir(args.dir_path)):
             if i >= args.samples:
                 break
             formula = CNF.from_file(os.path.join(args.dir_path, filename))
             walksat = WalkSAT(args.max_tries, args.max_flips, args.p)
-            walksat.run(formula)
+            walksat.run(formula,filename,args)
+
             flips = walksat.flips_to_solution
             backflips = walksat.backflips
             unsats = walksat.unsat_clauses
@@ -147,6 +164,13 @@ def main(args):
         # print(med_flips)
         # print(avg_flips)
         # print(max_flips)
+        end = time.time()
+        duration = (end - start) * 1000
+        logging.info(
+            'time: {:.4f}'.format(
+                duration
+            )
+        )
         logging.info(
             'Acc: {:.4f}, Med: {:.4f}, Mean: {:.4f}, Max: {:.4f}'.format(
                 100 * np.mean(solved), np.median(med_flips), np.mean(avg_flips), np.mean(max_flips)
@@ -182,9 +206,13 @@ if __name__ == '__main__':
     parser.add_argument('--samples', type=int)
     parser.add_argument('--log_level', type=str, default='info')
     parser.add_argument('--seed', type=int, default=0)
-    parser.add_argument('--max_tries', type=int, default=10)
-    parser.add_argument('--max_flips', type=int, default=10000)
+    parser.add_argument('--max_tries', type=int, default=100)
+    parser.add_argument('--max_flips', type=int, default=50000)
     parser.add_argument('--p', type=float, default=0.5)
+    parser.add_argument('--neuro_ini', type=bool, default=False)
+    parser.add_argument('--model_dir', type=str, default=None)
+    parser.add_argument('--dim', type=int, default=128, help='Dimension of variable and clause embeddings')
+    parser.add_argument('--n_rounds', type=int, default=16, help='Number of rounds of message passing')
     args = parser.parse_args()
     logging.basicConfig(level=getattr(logging, args.log_level.upper()))
     main(args)
