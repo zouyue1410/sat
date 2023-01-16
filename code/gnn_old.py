@@ -54,7 +54,7 @@ class GraphConv(nn.Module):
         # mv = torch.spmm(vadj, self.fmv(torch.cat((hc.clone().repeat(2, 1), xec), dim=1)))
         # mc = torch.spmm(cadj, self.fmc(torch.cat((hv.clone().repeat(2, 1), xev), dim=1)))
         '''
-        hvc=F.softmax(torch.spmm(hv.clone(),hc.clone().transpose(0,1)))
+         hvc=F.softmax(torch.spmm(hv.clone(),hc.clone().transpose(0,1)))
         vatt=torch.mul(vadj.to_dense(),torch.cat([hvc,hvc],dim=1))
         mv = torch.spmm(vatt, torch.cat([self.fmv_pos(hc.clone()), self.fmv_neg(hc.clone())], dim=0))
 
@@ -65,8 +65,12 @@ class GraphConv(nn.Module):
 
 
 
+
+
         mv = torch.spmm(vadj, torch.cat([self.fmv_pos(hc.clone()), self.fmv_neg(hc.clone())], dim=0))
         mc = torch.spmm(cadj, torch.cat([self.fmc_pos(hv.clone()), self.fmc_neg(hv.clone())], dim=0))
+
+
 
 
         # m1 = self.fmv_pos(hc)

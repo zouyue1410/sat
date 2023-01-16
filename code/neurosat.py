@@ -43,6 +43,9 @@ class NeuroSAT(nn.Module):
             nn.Linear(self.args.dim,1),
 
         )
+        self.C_vote=nn.Sequential(
+            nn.Linear(self.args.dim,1),
+        )
         self.L_prob=MLP(self.args.dim, self.args.dim, 1)
 
         self.denom = torch.sqrt(torch.Tensor([self.args.dim]))
@@ -95,16 +98,20 @@ class NeuroSAT(nn.Module):
             # print('L_state',C_state[0].shape, C_state[1].shape)
 
         logits = L_state[0].squeeze(0)
-
+        logits_c = C_state[0].squeeze(0)
         #vote = self.L_vote(logits)
         #加两层MLP 输出概率
+
         vote = self.L_prob(logits)
+        vote_c=self.C_vote(logits_c)
+        vote_c=F.sigmoid(vote_c)
+        vote_c=torch.mean(vote_c)
         #vote_join = vote[0:n_vars]
         vote_join = torch.cat([vote[:n_vars, :], vote[n_vars:, :]], dim=1)
         vote_join=F.softmax(vote_join,dim=1)
         #vote_join=self.L_prob(vote_join)
 
-        return vote_join[:,0]
+        return vote_join[:,0],vote_c
 
     def flip(self, msg, n_vars):
         return torch.cat([msg[n_vars:2 * n_vars, :], msg[:n_vars, :]], dim=0)

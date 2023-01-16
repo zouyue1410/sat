@@ -29,11 +29,11 @@ def compute_acc(n_vars, outputs, target):
             count=count+1
     count=float(count)
     return count/n_vars
-def compute_output(n_vars,outputs):
+def compute_output(n_vars,outputs,p0):
     for i in range(0, n_vars):
         eval_p = random.random()
         outputs[i] = 1 if (random.random() < outputs[i]) else 0
-        outputs[i] = outputs[i] if (eval_p < 0.9) else -outputs[i]
+        outputs[i] = outputs[i] if (eval_p < p0) else -outputs[i]
 
     return outputs
 def load_model(args):
@@ -50,9 +50,10 @@ def load_model(args):
 
 def predict(net, data):
     net.eval()
-    outputs = net(data)
-    outputs = sigmoid(outputs)
-    outputs = compute_output(data.n_vars, outputs)
+    outputs,p0 = net(data)
+    outputs=outputs.unsqueeze(1)
+    #outputs = sigmoid(outputs)
+    outputs = compute_output(data.n_vars, outputs,p0)
 
     return outputs
 

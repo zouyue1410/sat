@@ -25,12 +25,12 @@ def compute_acc(n_vars, outputs, target):
             count=count+1
     count=float(count)
     return count/n_vars
-def compute_output(n_vars,outputs):
+def compute_output(n_vars,outputs,p0):
 
     for i in range(0, n_vars):
         eval_p = random.random()
         outputs[i] = 1 if (random.random() < outputs[i]) else 0
-        outputs[i] = outputs[i] if (eval_p < 0.9) else -outputs[i]
+        outputs[i] = outputs[i] if (eval_p < p0) else -outputs[i]
 
     return outputs
 '''
@@ -58,7 +58,8 @@ for i, filename in enumerate(os.listdir(args.data_dir)):
 
 #for _, prob in enumerate(train_sets):
     optim.zero_grad()
-    outputs = net(prob).unsqueeze(1)
+    outputs,p0 = net(prob)
+    outputs=outputs.unsqueeze(1)
     target = torch.Tensor(prob.label).cuda().float().view(prob.n_vars,1)
     #outputs = sigmoid(outputs)
     loss=loss_fn(outputs,target)
@@ -71,7 +72,7 @@ for i, filename in enumerate(os.listdir(args.data_dir)):
     desc = 'loss: %.4f; ' % (loss.item())
     loss.backward()
     optim.step()
-    outputs_assign=compute_output(prob.n_vars,outputs)
+    outputs_assign=compute_output(prob.n_vars,outputs,p0)
     acc = compute_acc(prob.n_vars,outputs_assign,target)
     desc += 'acc: %.3f' % acc
     if (i + 1) % 100 == 0:
@@ -84,12 +85,13 @@ for i, filename in enumerate(os.listdir(args.data_dir)):
             if eval_>9:
                 break
             optim.zero_grad()
-            eval_outputs = net(eval_prob).unsqueeze(1)
+            eval_outputs,eval_p0 = net(eval_prob)
+            eval_outputs=eval_outputs.unsqueeze(1)
             eval_target = torch.Tensor(eval_prob.label).cuda().float()
 
             eval_target = eval_target.view(eval_prob.n_vars, 1)
             #eval_outputs = sigmoid(eval_outputs)
-            eval_outputs_assign=compute_output(eval_prob.n_vars,eval_outputs)
+            eval_outputs_assign=compute_output(eval_prob.n_vars,eval_outputs,eval_p0)
             eval_acc=compute_acc(eval_prob.n_vars,eval_outputs_assign,eval_target)
             torch.save({'acc': eval_acc, 'state_dict': net.state_dict()},
                     os.path.join(args.model_dir,args.taskname + '_last.pth.tar'))
