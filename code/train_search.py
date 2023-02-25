@@ -69,36 +69,6 @@ def reinforce(sat, history, config):
 
     return -torch.mean(partial_rewards[torch.from_numpy(mask).to(log_probs.device)] * log_probs)
 
-
-def pg(sat, history, config):
-    log_probs_list, values_list, entropies_list = history
-    T = len(log_probs_list)
-
-    log_probs_filtered = []
-    values_filtered = []
-    entropies_filtered = []
-    mask = np.zeros(T, dtype=np.uint8)
-    for i, (x, y, z) in enumerate(zip(log_probs_list, values_list, entropies_list)):
-        if x is not None:
-            log_probs_filtered.append(x)
-            values_filtered.append(y)
-            entropies_filtered.append(z)
-            mask[i] = 1
-
-    log_probs = torch.stack(log_probs_filtered)
-    values = torch.stack(values_filtered)
-    entropies = torch.stack(entropies_filtered)
-
-    partial_rewards = config['discount'] ** torch.arange(T - 1, -1, -1, dtype=torch.float32, device=log_probs.device)
-    rewards_masked = partial_rewards[torch.from_numpy(mask).to(log_probs.device)]
-
-    actor_loss = -torch.mean((rewards_masked - values.detach()) * log_probs)
-    critic_loss = F.mse_loss(values, rewards_masked)
-    entropy_loss = -torch.mean(entropies)
-
-    return actor_loss + 0.5 * critic_loss + 0.01 * entropy_loss
-
-
 def a2c(sat, history, config):
     log_probs, values, entropies = history
     device = log_probs[0].device
@@ -109,10 +79,11 @@ def a2c(sat, history, config):
     entropies = torch.stack(entropies)
 
     rewards = torch.zeros_like(log_probs)
-    rewards[-1] = int(sat)
+    rewards[-1] = int(sat)#把这次的reward变成1
 
-    T = rewards.shape[0]
-    if N < T:
+    T = rewards.shape[0]#选择变量的次数
+    #print(T)
+    if N < T:#为每一次变量选择计算R 变量选择次数*1
         R = (config['discount'] ** N) * torch.cat([values.detach()[N:], torch.zeros(N).to(device)])
     else:
         R = torch.zeros(T).to(device)
@@ -125,7 +96,7 @@ def a2c(sat, history, config):
     R += partial_rewards
 
     actor_loss = -torch.mean((R - values.detach()) * log_probs)
-    critic_loss = F.mse_loss(values, R)
+    critic_loss = F.mse_loss(values, R)#A=R-v
     entropy_loss = -torch.mean(entropies)
 
     return actor_loss + 0.5 * critic_loss + 0.01 * entropy_loss
@@ -156,6 +127,7 @@ def generate_episodes(ls, sample, max_tries, max_flips, config):
 
     for _ in range(max_tries):
         sat, flip, history = ls.generate_episode(sample, max_flips, config['walk_prob'])
+
         flip = flip[0]
         if sat and flip > 0 and not all(map(lambda x: x is None, history[0])):
             losses.append(loss_fn(sat, history, config))

@@ -1,4 +1,4 @@
-name: search/kcover/5
+name: search/kcover/6
 seed: 1
 
 log_level: info
@@ -8,19 +8,19 @@ save_interval: 50
 
 data_path: data/kcover
 train_sets:
-  - name: 5-9-0.5
-    samples: 2000
+  - name: 6-10-0.5
+    samples: 1000
     max_tries: 5
     max_flips: 500
     iterations: 10000
 
 eval_set:
-  name: 6-10-0.5
+  name: 7-11-0.5
   samples: 10
   max_tries: 10
   max_flips: 500
 
-model_path: results/search/kcover/4/model_best.pth
+model_path: results/search/kcover/5/model_best.pth
 
 gnn_hidden_size: 32
 readout_hidden_size: 64

@@ -94,7 +94,8 @@ class WalkSAT:
                 # if unsat_clause_indices.size == 0:
                     # logging.info(f'Try: {i}, Flip: {j}')
                     # logging.info(f'Found solution: {self.model[1:]}')
-                    break
+
+                    return 1
                 selected_clause = random.choice(unsat_clause_indices)
                 #print('clause: ' + str(formula.clauses[selected_clause]))
                 selected_literal, nonrandom = self.select_literal(
@@ -111,10 +112,11 @@ class WalkSAT:
                     #print('random')
                 self.flip(selected_literal, formula.occur_list)
                 j += 1
+
             self.flips_to_solution.append(j)
             self.backflips.append(backflipped)
             self.unsat_clauses.append(unsat_clauses)
-
+        return 0
 
 def main(args):
     if args.seed > -1:
@@ -137,16 +139,14 @@ def main(args):
         upwards = []
         sideways = []
         start = time.time()
-        path_list=os.listdir(args.dir_path)
-        path_list.sort()
-        for i, filename in enumerate(path_list):
-            print(filename)
+        for i, filename in enumerate(os.listdir(args.dir_path)):
+            #print(filename)
             if i >= args.samples:
                 break
             formula = CNF.from_file(os.path.join(args.dir_path, filename))
             walksat = WalkSAT(args.max_tries, args.max_flips, args.p)
-            walksat.run(formula,filename,args)
-
+            solve=walksat.run(formula,filename,args)
+            '''
             flips = walksat.flips_to_solution#
             backflips = walksat.backflips
             unsats = walksat.unsat_clauses
@@ -163,7 +163,9 @@ def main(args):
             med_flips.append(med)
             avg_flips.append(np.mean(flips))
             max_flips.append(np.max(flips))
-            solved.append(int(med < args.max_flips))#
+            '''
+
+            solved.append(solve)#
         # print(med_flips)
         # print(avg_flips)
         # print(max_flips)
@@ -174,12 +176,12 @@ def main(args):
                 duration
             )
         )
-
         logging.info(
-            'Acc: {:.4f}, Med: {:.4f}, Mean: {:.4f}, Max: {:.4f}'.format(
-                100 * np.mean(solved), np.median(med_flips), np.mean(avg_flips), np.mean(max_flips)
+            'Acc: {:.4f}, '.format(
+                100 * np.mean(solved)
             )
         )
+        '''
         logging.info(
             '(Backflips) Med: {:.4f}, Mean: {:.4f}, Max: {:.4f}'.format(
                 np.median(med_backflips), np.mean(avg_backflips), np.mean(max_backflips)
@@ -188,6 +190,8 @@ def main(args):
         logging.info('(Delta) Mean: {:.4f}'.format(np.mean(mean_delta)))
         logging.info('(Movement) Up: {:.4f}, Side: {:.4f}, Down: {:.4f}'.format(np.mean(upwards),
                                                                                 np.mean(sideways), np.mean(downwards)))
+        '''
+
     elif args.file_path:
         formula = CNF.from_file(args.file_path)
         walksat = WalkSAT(args.max_tries, args.max_flips, args.p)

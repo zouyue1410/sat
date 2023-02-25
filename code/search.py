@@ -94,6 +94,7 @@ class LocalSearch:
 
     # @profile
     def _generate_episode_reinforce(self, sample, max_flips, walk_prob):
+
         f = sample.formula
         data = init_tensors(sample, self.device)
         true_lit_count = compute_true_lit_count(f.clauses, data.sol)
@@ -207,7 +208,7 @@ def flip_multi_(xv, sol, true_lit_count, vs, occur_list):
         xv[v, :2] = 1 - xv[v, :2]
         sol[v + 1] *= -1
 
-#xv:n*3表示变量的vector
+
 def flip_(xv, sol, true_lit_count, v, occur_list):
     lit_false = (v + 1) * normalize(int(xv[v, 0].item() == 1))
     for i in occur_list[lit_false]:

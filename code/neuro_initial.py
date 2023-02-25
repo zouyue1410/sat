@@ -29,13 +29,32 @@ def compute_acc(n_vars, outputs, target):
             count=count+1
     count=float(count)
     return count/n_vars
-def compute_output(n_vars,outputs,p0):
+'''
+def compute_output(n_vars,outputs):
+    #print(p0)
     for i in range(0, n_vars):
         eval_p = random.random()
         outputs[i] = 1 if (random.random() < outputs[i]) else 0
-        outputs[i] = outputs[i] if (eval_p < p0) else -outputs[i]
+        #outputs[i] = outputs[i] if (eval_p < p0) else -outputs[i]
 
     return outputs
+'''
+def compute_output(n_vars,outputs):
+
+    for i in range(0, n_vars):
+
+        outputs[i] = 1 if (random.random() < outputs[i]) else 0
+        p=0.9
+        if random.random()<p:
+            outputs[i]=outputs[i]
+        else :
+            if outputs[i]==1:
+                outputs[i]=0
+            else:
+                outputs[i]=1
+
+    return outputs
+
 def load_model(args):
     net = NeuroSAT(args)
     #start=time.time()
@@ -50,10 +69,18 @@ def load_model(args):
 
 def predict(net, data):
     net.eval()
-    outputs,p0 = net(data)
+    #outputs,p0 = net(data)
+    outputs = net(data)
     outputs=outputs.unsqueeze(1)
     #outputs = sigmoid(outputs)
-    outputs = compute_output(data.n_vars, outputs,p0)
+    '''
+    p_outputs = []
+    for i in range(0, data.n_vars):
+        p_outputs.append(outputs[i]) if random.random() < p0 else p_outputs.append(1 - outputs[i])
+    p_outputs = torch.tensor(p_outputs).view(-1, 1).cuda()
+    '''
+    outputs = compute_output(data.n_vars, outputs)
+    #outputs = compute_output(data.n_vars, p_outputs)
 
     return outputs
 

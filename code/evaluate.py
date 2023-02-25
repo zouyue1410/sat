@@ -56,6 +56,7 @@ def generate_episodes(ls, sample, max_tries, max_flips, walk_prob, no_multi):
         for j in range(max_tries):
             # logger.info(f'Try: {j}')
             sat, stat, _ = ls.generate_episode(sample, max_flips, walk_prob)
+
             flip, backflip, unsat = stat
             flips.append(flip)
             backflips.append(backflip)
@@ -80,7 +81,7 @@ def main(args):
     eval_set = load_dir(args.dir_path)
 
     ls.policy.eval()
-    # ls.eval()
+    #ls.eval()
     with torch.no_grad():
         fp = ([], [], [], [])
         med_backflips = []

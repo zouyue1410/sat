@@ -25,8 +25,9 @@ def setup():
     with open(args.config_path) as f:
         config_data = f.read()
     config = yaml.safe_load(config_data)
+    # reinforce的时候改成results
 
-    config['dir'] = join('results', config['name'])
+    config['dir'] = join('a2c_results', config['name'])
     os.makedirs(config['dir'], exist_ok=True)
 
     log_file = join(config['dir'], 'train.log')

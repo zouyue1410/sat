@@ -138,13 +138,14 @@ def main(args):
         sideways = []
         start = time.time()
         for i, filename in enumerate(os.listdir(args.dir_path)):
+            print(filename)
             if i >= args.samples:
                 break
             formula = CNF.from_file(os.path.join(args.dir_path, filename))
             walksat = WalkSAT(args.max_tries, args.max_flips, args.p)
             walksat.run(formula,filename,args)
 
-            flips = walksat.flips_to_solution
+            flips = walksat.flips_to_solution#
             backflips = walksat.backflips
             unsats = walksat.unsat_clauses
             diffs = [np.diff(u) for u in unsats]
@@ -156,11 +157,11 @@ def main(args):
             med_backflips.append(np.median(backflips))
             avg_backflips.append(np.mean(backflips))
             max_backflips.append(np.max(backflips))
-            med = np.median(flips)
+            med = np.median(flips)#
             med_flips.append(med)
             avg_flips.append(np.mean(flips))
             max_flips.append(np.max(flips))
-            solved.append(int(med < args.max_flips))
+            solved.append(int(med < args.max_flips))#
         # print(med_flips)
         # print(avg_flips)
         # print(max_flips)
@@ -208,7 +209,7 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--max_tries', type=int, default=100)
     parser.add_argument('--max_flips', type=int, default=50000)
-    parser.add_argument('--p', type=float, default=0.5)
+    parser.add_argument('--p', type=float,  default=0.5)
     parser.add_argument('--neuro_ini', type=bool, default=False)
     parser.add_argument('--model_dir', type=str, default=None)
     parser.add_argument('--dim', type=int, default=128, help='Dimension of variable and clause embeddings')

@@ -10,6 +10,8 @@ from data_search import load_dir
 from search import LocalSearch
 from multiprocessing import Pool
 import time
+from func_timeout import func_set_timeout
+
 
 logger = logging.getLogger(__name__)
 
@@ -52,19 +54,37 @@ def generate_episodes(ls, sample, max_tries, max_flips, walk_prob, no_multi):
         flips = []
         backflips = []
         unsat_clauses = []
+        count=0
+        sats=0
+        while(1):
+            count=count+1
+            print("count=%d"%count)
 
-        for j in range(max_tries):
+            sat, stat, _ = ls.generate_episode(sample, max_flips, walk_prob)
+            if sat:
+                sats=sats+1
+            if sats>count/2:
+                print("sat")
+                break
+            flip, backflip, unsat = stat
+            flips.append(flip)
+            backflips.append(backflip)
+            unsat_clauses.append(unsat)
+        '''
+                for j in range(max_tries):
             # logger.info(f'Try: {j}')
             sat, stat, _ = ls.generate_episode(sample, max_flips, walk_prob)
             flip, backflip, unsat = stat
             flips.append(flip)
             backflips.append(backflip)
             unsat_clauses.append(unsat)
-            if sat:
-                break
-        return flips, backflips, unsat_clauses
+        '''
 
+        if count==max_tries :
+            return 0
+        return 1
 
+@func_set_timeout(1000)
 def main(args):
     start = time.process_time()
     if args.seed > -1:
@@ -93,19 +113,16 @@ def main(args):
         downwards = []
         upwards = []
         sideways = []
-        solved=0
+        flag=1
         for i, sample in enumerate(eval_set):
             if i % 10 == 0:
                 logger.info(f'Sample: {i}')
             if i >= args.samples:
                 break
-            flips, backflips, unsats ,sat= generate_episodes(ls, sample, args.max_tries,
+            flag = generate_episodes(ls, sample, args.max_tries,
                                                          args.max_flips, args.p, args.no_multi)
-            if sat:
-                solved=solved+1
-                if solved==args.solved:
-                    logging.info('solbed: {:.4f}'.format(args.solved))
-                    break
+            if flag==0:
+                break
             '''
                         if backflips is not None:
                 med_backflips.append(np.median(backflips))
@@ -119,9 +136,8 @@ def main(args):
                 sideways.append(np.mean([np.sum(a == 0) for a in diff_a]))
                 mean_delta.append(np.mean([np.mean(d) for d in diffs]))
             flip_update(fp, flips, args.max_flips)
-            '''
 
-    '''
+
     _, stats = flip_report(f'(Eval)  ', fp)
     logging.info(
         '(Backflips) Med: {:.4f}, Mean: {:.4f}, Max: {:.4f}'.format(
@@ -131,10 +147,12 @@ def main(args):
     logging.info('(Delta) Mean: {:.4f}'.format(np.mean(mean_delta)))
     logging.info('(Movement) Up: {:.4f}, Side: {:.4f}, Down: {:.4f}'.format(np.mean(upwards), np.mean(sideways),
                                                                             np.mean(downwards)))
-    '''
-
-    end = time.process_time()
-    logging.info('eval_time: {:.4f}'.format(end - start))
+            '''
+    if flag==0:
+        logging.info('eval_time: {:.4f}'.format(50000))
+    else :
+        end = time.process_time()
+        logging.info('eval_time: {:.4f}'.format(end - start))
     return []
 
 
@@ -151,7 +169,6 @@ if __name__ == '__main__':
     parser.add_argument('--max_flips', type=int, default=10000)
     parser.add_argument('--p', type=float, default=0.5)
     parser.add_argument('--no_multi', action='store_true')
-    parser.add_argument('--solved', type=int)
     args = parser.parse_args()
     logging.basicConfig(level=getattr(logging, args.log_level.upper()))
     main(args)
