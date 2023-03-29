@@ -1,0 +1,46 @@
+20:54:13 INFO Configuration:
+name: search/rand/5
+seed: 1
+
+log_level: info
+report_interval: 10
+eval_interval: 50
+save_interval: 50
+
+data_path: /home/zhang/zouy/sat/data/rand
+train_sets:
+  - name: 5-21
+    samples: 2000
+    max_tries: 5
+    max_flips: 50
+    iterations: 10000
+
+eval_set:
+  name: 10-43
+  samples: 10
+  max_tries: 25
+  max_flips: 100
+
+model_path: False
+
+gnn_hidden_size: 32
+readout_hidden_size: 64
+
+cycles: 1
+optimizer: RMSprop
+lr: 0.001
+lr_milestones: [200, 500, 1000, 5000]
+lr_decay: 0.5
+
+method: reinforce
+a2c_n: 10
+discount: 0.25
+walk_prob: 0.5
+
+20:54:13 INFO Device: cpu
+20:54:13 INFO Loaded 1001 training problems from /home/zhang/zouy/sat/data/rand
+20:54:13 INFO Loaded 10 evaluation problems from /home/zhang/zouy/sat/data/rand
+20:54:13 INFO Cycle: 1
+20:54:13 INFO Train set: 5-21
+20:54:40 INFO (Eval)    Acc:      60.00,  Flips:      89.00 (med) /      64.58 (mean) /     100.00 (max)
+20:54:40 INFO Saving best model parameters

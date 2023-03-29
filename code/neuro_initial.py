@@ -16,20 +16,12 @@ from neurosat import NeuroSAT
 
 from config import parser
 sigmoid=nn.Sigmoid()
-def compute_acc(n_vars, outputs, target):
-    for i in range(0, n_vars):
-        p = random.random()
-        if p < outputs[i]:
-            outputs[i] = 1.0
-        else:
-            outputs[i] = 0.0
-    count = 0
-    for i in range(0, n_vars):
-        if outputs[i] == target[i]:
-            count=count+1
-    count=float(count)
-    return count/n_vars
-'''
+
+
+
+
+
+
 def compute_output(n_vars,outputs):
     #print(p0)
     for i in range(0, n_vars):
@@ -38,6 +30,9 @@ def compute_output(n_vars,outputs):
         #outputs[i] = outputs[i] if (eval_p < p0) else -outputs[i]
 
     return outputs
+
+
+
 '''
 def compute_output(n_vars,outputs):
 
@@ -54,6 +49,18 @@ def compute_output(n_vars,outputs):
                 outputs[i]=1
 
     return outputs
+'''
+
+
+
+
+
+
+
+
+
+
+
 
 def load_model(args):
     net = NeuroSAT(args)
@@ -69,18 +76,28 @@ def load_model(args):
 
 def predict(net, data):
     net.eval()
-    #outputs,p0 = net(data)
-    outputs = net(data)
+    outputs,p0 = net(data)
+    #outputs = net(data)
     outputs=outputs.unsqueeze(1)
     #outputs = sigmoid(outputs)
-    '''
+
+
     p_outputs = []
-    for i in range(0, data.n_vars):
-        p_outputs.append(outputs[i]) if random.random() < p0 else p_outputs.append(1 - outputs[i])
+    for j in range(0, data.n_vars):
+        t = p0*1.0 * outputs[j] + (1.0 - p0) * 0.5
+        p_outputs.append(t * 1.0)
     p_outputs = torch.tensor(p_outputs).view(-1, 1).cuda()
-    '''
-    outputs = compute_output(data.n_vars, outputs)
-    #outputs = compute_output(data.n_vars, p_outputs)
+
+
+
+    print(p_outputs)
+
+
+
+
+
+    #outputs = compute_output(data.n_vars, outputs)
+    outputs = compute_output(data.n_vars, p_outputs)
 
     return outputs
 
@@ -91,18 +108,11 @@ def pre_assign(args,filename):
     times = []
     with open(os.path.join(args.dir_path,'pkl',filename.replace('cnf','pkl')), 'rb') as f:
         x = pickle.load(f)
-    start_time = time.time()
+
     outputs = predict(net, x)
-    end_time = time.time()
-    duration = (end_time - start_time) * 1000
-    target = torch.Tensor(x.label).cuda().float()
-
-    target = target.view(x.n_vars, 1)
-
-    acc=compute_acc(x.n_vars,outputs,target)
 
 
-    desc = " time: %.2f ms; the pred acc is %.2f" \
-           % (duration * 1.0 ,acc)
+
+
     return outputs
 

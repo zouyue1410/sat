@@ -1,0 +1,62 @@
+12:25:36 INFO Configuration:
+name: search/kcolor/5
+seed: 1
+
+log_level: info
+report_interval: 10
+eval_interval: 50
+save_interval: 50
+
+data_path: /home/zhang/zouy/sat/data/kcolor
+train_sets:
+  - name: 3-5-0.5
+    samples: 2000
+    max_tries: 5
+    max_flips: 50
+    iterations: 10000
+
+eval_set:
+  name: 3-10-0.5
+  samples: 10
+  max_tries: 10
+  max_flips: 200
+
+model_path: False
+
+gnn_hidden_size: 32
+readout_hidden_size: 64
+
+cycles: 1
+optimizer: RMSprop
+lr: 0.0005
+lr_milestones: [200, 500, 1000, 5000]
+lr_decay: 0.5
+
+method: a2c
+a2c_n: 10
+discount: 0.25
+walk_prob: 0.5
+
+12:25:36 INFO Device: cpu
+12:25:37 INFO Loaded 2000 training problems from /home/zhang/zouy/sat/data/kcolor
+12:25:37 INFO Loaded 10 evaluation problems from /home/zhang/zouy/sat/data/kcolor
+12:25:37 INFO Cycle: 1
+12:25:37 INFO Train set: 3-5-0.5
+12:26:16 INFO (Eval)    Acc:       0.00,  Flips:     200.00 (med) /     200.00 (mean) /     200.00 (max)
+12:26:16 INFO Saving best model parameters
+12:26:22 INFO Iter:     10,  Acc:       0.00,  Flips:      50.00 (med) /      48.30 (mean) /      50.00 (max)
+12:26:29 INFO Iter:     20,  Acc:      20.00,  Flips:      50.00 (med) /      43.64 (mean) /      50.00 (max)
+12:26:35 INFO Iter:     30,  Acc:       0.00,  Flips:      50.00 (med) /      47.98 (mean) /      50.00 (max)
+12:26:41 INFO Iter:     40,  Acc:      10.00,  Flips:      50.00 (med) /      44.96 (mean) /      50.00 (max)
+12:26:47 INFO Iter:     50,  Acc:      30.00,  Flips:      50.00 (med) /      40.00 (mean) /      50.00 (max)
+12:26:47 INFO Saving last model parameters
+12:26:47 INFO Saving stats
+12:27:26 INFO (Eval)    Acc:       0.00,  Flips:     200.00 (med) /     200.00 (mean) /     200.00 (max)
+12:27:26 INFO Saving best model parameters
+12:27:32 INFO Iter:     60,  Acc:      80.00,  Flips:      28.00 (med) /      27.30 (mean) /      47.50 (max)
+12:27:37 INFO Iter:     70,  Acc:      80.00,  Flips:      28.50 (med) /      27.72 (mean) /      44.20 (max)
+12:27:42 INFO Iter:     80,  Acc:      80.00,  Flips:      20.50 (med) /      20.56 (mean) /      30.70 (max)
+12:27:45 INFO Iter:     90,  Acc:     100.00,  Flips:      10.50 (med) /      17.74 (mean) /      34.90 (max)
+12:27:48 INFO Iter:    100,  Acc:     100.00,  Flips:       5.50 (med) /       9.40 (mean) /      19.80 (max)
+12:27:48 INFO Saving last model parameters
+12:27:48 INFO Saving stats

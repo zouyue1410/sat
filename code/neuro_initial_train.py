@@ -30,6 +30,7 @@ def compute_output(n_vars,outputs):
     for i in range(0, n_vars):
 
         outputs[i] = 1 if (random.random() < outputs[i]) else 0
+        '''
         p=0.9
         if random.random()<p:
             outputs[i]=outputs[i]
@@ -38,6 +39,8 @@ def compute_output(n_vars,outputs):
                 outputs[i]=0
             else:
                 outputs[i]=1
+        '''
+
 
     return outputs
 '''
@@ -66,7 +69,7 @@ for i, filename in enumerate(os.listdir(args.data_dir)):
 #for _, prob in enumerate(train_sets):
     optim.zero_grad()
     #utputs, p0 = net(prob)
-    outputs= net(prob)
+    outputs,p0= net(prob)
     #print(p0)
     outputs=outputs.unsqueeze(1)
     target = torch.Tensor(prob.label).cuda().float().view(prob.n_vars,1)
@@ -80,17 +83,34 @@ for i, filename in enumerate(os.listdir(args.data_dir)):
     p_outputs=[]
     for j in range(0,prob.n_vars):
         p_outputs.append(outputs[j]) if random.random() <p0 else p_outputs.append(1-outputs[j])
+    '''
+
+    p_outputs=[]
+    for j in range(0, prob.n_vars):
+        t=p0*outputs[j]+(1-p0)*0.5
+        p_outputs.append(t*1.0)
+        '''
+                if random.random() < p0:
+            p_outputs.append(1.0) if random.random() < outputs[j] else p_outputs.append(0.0)
+        else:
+            p_outputs.append(0.0) if random.random() < outputs[j] else p_outputs.append(1.0)
+        '''
 
     
     p_outputs=torch.tensor(p_outputs).view(-1,1).cuda()
-    loss = loss_fn(p_outputs, target)
+
     '''
-    loss = loss_fn(outputs, target)
+    
+    '''
+
+    loss = loss_fn(p_outputs, target)
+    #loss = loss_fn(outputs_assign, target)
+    #loss = loss_fn(outputs, target)
     loss.requires_grad_(True)
     loss.backward(retain_graph=True)
 
-    outputs_assign = compute_output(prob.n_vars, outputs)
-    #outputs_assign = compute_output(prob.n_vars, p_outputs)
+    #outputs_assign = compute_output(prob.n_vars, outputs)
+    outputs_assign = p_outputs
     desc = 'loss: %.4f; ' % (loss.item())
 
     #outputs_assign=compute_output(prob.n_vars,outputs,p0)
@@ -106,8 +126,8 @@ for i, filename in enumerate(os.listdir(args.data_dir)):
             if eval_>9:
                 break
             optim.zero_grad()
-            #eval_outputs,eval_p0 = net(eval_prob)
-            eval_outputs= net(eval_prob)
+            eval_outputs,eval_p0 = net(eval_prob)
+            #eval_outputs= net(eval_prob)
             eval_outputs=eval_outputs.unsqueeze(1)
             eval_target = torch.Tensor(eval_prob.label).cuda().float()
 
