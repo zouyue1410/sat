@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
+  <component name="PublishConfigData" serverName="zhang" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
-      <paths name="zhang@59.72.109.139:19001 password">
+      <paths name="zhang">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/zhang/zouy/sat" local="$PROJECT_DIR$" />
+            <mapping deploy="/home/zhang/zouy/sat" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
